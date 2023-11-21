@@ -35,12 +35,12 @@ def cmmd(source, target, s_label, t_label, kernel_mul=2.0, kernel_num=5, fix_sig
     #print(batch_size)
     s_label = s_label.view(batch_size,1)
     s_label = torch.zeros(batch_size, 31).scatter_(1, s_label.data, 1)
-    #s_label = Variable(s_label).cuda()
+    s_label = Variable(s_label).cuda()
 
     t_label = t_label.cpu()
     t_label = t_label.view(batch_size, 1)
     t_label = torch.zeros(batch_size, 31).scatter_(1, t_label.data, 1)
-    #t_label = Variable(t_label).cuda()
+    t_label = Variable(t_label).cuda()
 
 
     kernels = guassian_kernel(source, target,

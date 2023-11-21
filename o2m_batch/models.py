@@ -138,7 +138,7 @@ class Transfer_Net(nn.Module):
             mmd_loss = mmd.mmd_rbf_noaccelerate(X, Y)
             if self.training:
                 cmmd_loss = Variable(torch.Tensor([0]))
-                #cmmd_loss = cmmd_loss.cuda()
+                cmmd_loss = cmmd_loss.cuda()
                 cmmd_loss = mmd.cmmd(X, Y, s_label, t_label)
                 mu = mu = es.estimate_mu(X.detach().cpu().numpy(), s_label.detach().cpu().numpy(),Y.detach().cpu().numpy(), t_label.detach().cpu().numpy())
                                                                                                 

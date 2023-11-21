@@ -67,7 +67,7 @@ DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-#torch.cuda.set_device(opt.gpu_id)
+torch.cuda.set_device(opt.gpu_id)
 logtrain = [] #創建一個空的list
 logtest = [] #創建一個空的list
 #writer = SummaryWriter()
@@ -166,6 +166,7 @@ def train(source_loader, target_train_loader, test_flag,  target_test_loader, KM
         criterion = LS.LabelSmoothingCrossEntropy(reduction = 'sum') # 使用Loss為CrossEntropy (pytorch crossentropy會自動先經過softmax function)
         #scheduler.step()
         #print(scheduler.get_last_lr())
+        torch.cuda.synchronize()
         tStart = time.time()
         for i in range(n_batch):
             
@@ -225,7 +226,7 @@ def train(source_loader, target_train_loader, test_flag,  target_test_loader, KM
         
         #mu = es.estimate_mu(source.detach().cpu().numpy(), label_source.detach().cpu().numpy(),
          #target.detach().cpu().numpy(), target_pred.detach().cpu().numpy()) 
-        
+        torch.cuda.synchronize()
         tEnd = time.time()
         print (tEnd - tStart)
 
@@ -250,8 +251,8 @@ def train(source_loader, target_train_loader, test_flag,  target_test_loader, KM
 
 if __name__ == '__main__':
     torch.manual_seed(0) # 為CPU设置隨機種子讓參數是從某一隨機種子初始化
-    #torch.cuda.manual_seed_all(0)
-    #torch.cuda.manual_seed_all(0)
+    torch.cuda.manual_seed_all(0)
+    torch.cuda.manual_seed_all(0)
     np.random.seed(0)
     #random.seed(0)
     test_flag = 0
@@ -261,18 +262,23 @@ if __name__ == '__main__':
     
 
     kwargs = {'num_workers': 2, 'pin_memory': False, 'persistent_workers' : True} if opt.gpu_id == 0 or 1 else {}
+    '''
+    path_source_train = os.path.join(opt.train_root_path, opt.source_dir, 'source_train_feature.npy')
+    path_source_train_label = os.path.join(opt.train_root_path, opt.source_dir, 'source_train_feature_label.npy')
+    path_target_train = os.path.join(opt.train_root_path, opt.target_train_dir, 'target_train_feature.npy')
+    path_target_train_label = os.path.join(opt.train_root_path, opt.target_train_dir, 'target_train_feature_label.npy')
 
-    #path_source_train = os.path.join(opt.train_root_path, opt.source_dir, 'source_train_feature.npy')
-    #path_source_train_label = os.path.join(opt.train_root_path, opt.source_dir, 'source_train_feature_label.npy')
-    #path_target_train = os.path.join(opt.train_root_path, opt.target_train_dir, 'target_train_feature.npy')
-    #path_target_train_label = os.path.join(opt.train_root_path, opt.target_train_dir, 'target_train_feature_label.npy')
+    source_train = torch.from_numpy(np.load(path_source_train))
+    source_train_label = torch.from_numpy(np.load(path_source_train_label))
+    target_train = torch.from_numpy(np.load(path_target_train))
+    target_train_label = torch.from_numpy(np.load(path_target_train_label))
+    #print(target_train_label)
+    '''
 
     source_train = torch.from_numpy(np.load('source_train_feature.npy'))
     source_train_label = torch.from_numpy(np.load('source_train_feature_label.npy'))
     target_train = torch.from_numpy(np.load('target_train_feature.npy'))
     target_train_label = torch.from_numpy(np.load('target_train_feature_label.npy'))
-    #print(target_train_label)
-
     
 
 
@@ -332,7 +338,7 @@ if __name__ == '__main__':
         os.makedirs(save_log_path)
     
     model = models.Transfer_Net(CFG['n_class'])
-    #model = model.cuda()
+    model = model.cuda()
 
 
     KMM_weight = KMM_Lin.compute_kmm()
