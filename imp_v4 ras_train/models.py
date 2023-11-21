@@ -10,7 +10,7 @@ import mmd as md
 import backbone_multi
 import backbone
 import call_resnet18_multi as cl
-import time
+DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # ResNet-18在最初時沒有使用bottleneck
 class Transfer_Net(nn.Module):
@@ -84,22 +84,33 @@ class Transfer_Net(nn.Module):
         
         ##source = source.view(source.size(0), -1)
         ##target = target.view(target.size(0), -1)
+        #print(s_label.requires_grad)
         source = self.base_network(source, test_flag)
+        #source = source.detach()
         source = self.bottle_layer(source)
         with torch.no_grad():
             source_bottle = source
+        #source_bottle = source.clone().detach()
+        #source_bottle.requires_grad_ = False
+        #print(source_bottle.requires_grad)
+        #print(source_bottle.requires_grad)
         source_clf = self.classifier_layer(source)
         target = self.base_network(target, test_flag)
-        target = self.bottle_layer(target)
+        #target = target.detach()
+        target = self.bottle_layer(target) 
         with torch.no_grad():
             target_bottle = target
-        
+        print(target_bottle.requires_grad)  
+        #target_bottle = target.clone().detach()
+        #target_bottle.requires_grad_ = False
+        #Target_bottle
         t_label = self.classifier_layer(target)
         t_label = Variable(t_label.detach().max(1)[1])
+        #print(source.requires_grad)
         transfer_loss = self.adapt_loss(source_bottle, target_bottle, self.transfer_loss, s_label, t_label, mu)
         #transfer_loss = self.adapt_loss(source_bottle, target_bottle, self.transfer_loss, s_label, mu)
-        del source_bottle
-        del target_bottle
+        #del source_bottle
+        #del target_bottle
         
 
          #predict target label using iteration for cmmd
@@ -116,10 +127,9 @@ class Transfer_Net(nn.Module):
         #return source, target,source_clf, transfer_loss
 
     def predict(self, x, test_flag):
-        
+
         features = self.base_network(x, test_flag)
-        
-        
+        #print(features.requires_grad)
         features = self.bottle_layer(features)
         #print(features.size())
         clf = self.classifier_layer(features)
@@ -137,7 +147,7 @@ class Transfer_Net(nn.Module):
             mmd_loss = mmd.mmd_rbf_noaccelerate(X, Y)
             if self.training:
                 cmmd_loss = Variable(torch.Tensor([0]))
-                #cmmd_loss = cmmd_loss.cuda()
+                cmmd_loss = cmmd_loss.to(DEVICE)
                 cmmd_loss = mmd.cmmd(X, Y, s_label, t_label)
             transfer_loss = (1- mu) * cmmd_loss + mu * mmd_loss
         else:

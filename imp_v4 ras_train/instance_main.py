@@ -18,7 +18,7 @@ import LabelSmoothing as LS
 
 import argparse
 import time
-torch.backends.cudnn.benchmark = False
+torch.backends.cudnn.benchmark = True
 
 def str2bool(v):
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
@@ -83,18 +83,21 @@ def test(model, target_test_loader, test_flag, mu):
     criterion = torch.nn.CrossEntropyLoss()
     #criterion = LS.LabelSmoothingCrossEntropy(reduction='sum') # 定義一個標準準則，用來計算loss (讓輸出經過softmax，再進入Cross Entropy)
     len_target_dataset = len(target_test_loader.dataset) #所有test資料集的總數
-    #time_cost = 0
     
+    time_cost = 0
     with torch.no_grad(): # 在做evaluation時，關閉計算導數來增加運行速度
         for data, target in target_test_loader: # data為test資料，target為test label
             data, target = data.to(DEVICE), target.to(DEVICE)
             #import pdb; pdb.set_trace()
             #_, _, s_output, t_output, test_mmd_loss = model(data, data, target, mu) # 將data放入模型得到預測的輸出
+            #torch.cuda.synchronize()
             #tStart = time.time()
             test_output = model.predict(data, test_flag)
-            #tEnd = time.time()
-            #print(tEnd - tStart)
+            torch.cuda.synchronize()
+            tEnd = time.time()
+            #print(tEnd-tStart)
             #time_cost = time_cost + (tEnd - tStart)
+            
             loss = criterion(test_output, target) #計算loss
             test_loss.update(loss.item()) # 更新值到紀錄中
 
@@ -120,8 +123,10 @@ def test(model, target_test_loader, test_flag, mu):
         target_matrix_total = target_matrix_total.cpu().numpy()
         pred_matrix_total = pred_matrix_total.cpu().numpy()
         tn, fp, fn, tp = confusion_matrix(target_matrix_total, pred_matrix_total,labels=[0,1]).ravel()
-        tEnd = time.time()
-        print(tEnd - tStart)
+        #torch.cuda.synchronize()
+        #tEnd = time.time()
+        #print(tEnd - tStart)
+    
     test_total = 100*correct_total.type(torch.float32)/len_target_dataset
     print('{} --> {}: test max correct: {}, test accuracy: {:.3f} % \n'.format(source_name, target_name, correct_total, test_total))
     #print("test_loss = {}".format(test_loss.avg))
@@ -129,6 +134,8 @@ def test(model, target_test_loader, test_flag, mu):
     logtest.append([test_total,tn, fp, fn, tp])
     np_test = np.array(logtest, dtype=float)
     #print(time_cost)
+    
+
     # delimiter : 分隔浮號 ； %.6f 浮點型保留六位小數
     #np.savetxt(opt.save_test_name, np_log, delimiter=',', fmt='%.6f')
     test_flag = 0
@@ -167,6 +174,7 @@ def train(source_loader, target_train_loader, test_flag,  target_test_loader, KM
 
         # dataloader是可迭代對象，需先使用iter()訪問，返回一個迭代器後，再使用next()訪問
         iter_source, iter_target = iter(source_loader), iter(target_train_loader)
+        #iter_source, iter_target = iter_source.to(DEVICE), iter_target.to(DEVICE)
 
         n_batch = min(len_source_loader, len_target_loader) # 取train資料source與target的最小值 (batch_size設置的參數不是在這傳入)
         # n_batch = len_source_loader
@@ -175,15 +183,17 @@ def train(source_loader, target_train_loader, test_flag,  target_test_loader, KM
         criterion = LS.LabelSmoothingCrossEntropy(reduction = 'sum') # 使用Loss為CrossEntropy (pytorch crossentropy會自動先經過softmax function)
         #scheduler.step()
         #print(scheduler.get_last_lr())
-        
+        torch.cuda.synchronize()
+        tStart = time.time()
         for i in range(n_batch):
             
             data_source, label_source = iter_source.next()
+            data_source, label_source = data_source.to(DEVICE), label_source.to(DEVICE)
             #print(data_source.size())
             data_target, _ = iter_target.next()
             
             #data_source, label_source = data_source.to(DEVICE), label_source.to(DEVICE)
-            #data_target = data_target.to(DEVICE)
+            data_target = data_target.to(DEVICE)
             #writer.add_images("image", data_source)
             #print(data_target.size())
             #print(label_source.size())
@@ -208,10 +218,8 @@ def train(source_loader, target_train_loader, test_flag,  target_test_loader, KM
             #loss = clf_loss + gamma * transfer_loss 
 
             # classification loss + lambda * transfer loss
-            tStart = time.time()
+            
             loss.backward()
-            tEnd = time.time()
-            print (tEnd - tStart)
             
             
             
@@ -242,17 +250,17 @@ def train(source_loader, target_train_loader, test_flag,  target_test_loader, KM
 
         
         
-        #logtrain.append([train_loss_clf.avg, train_loss_transfer.avg * gamma,])
-        #np_log = np.array(logtrain, dtype=float)
-        #save_log_add = os.path.join(save_log_path, str(opt.save_train_loss_name))
+        logtrain.append([train_loss_clf.avg, train_loss_transfer.avg * gamma,])
+        np_log = np.array(logtrain, dtype=float)
+        save_log_add = os.path.join(save_log_path, str(opt.save_train_loss_name))
         # delimiter : 分隔浮號 ； %.6f 浮點型保留六位小數
-        #np.savetxt(save_log_add, np_log, delimiter=',', fmt='%.12f')
+        np.savetxt(save_log_add, np_log, delimiter=',', fmt='%.12f')
         mu_last = mu
         
         
         
-        mu = es.estimate_mu(source.detach().numpy(), label_source.detach().numpy(),
-         target.detach().numpy(), target_pred.detach().numpy()) 
+        #mu = es.estimate_mu(source.detach().cpu().numpy(), label_source.detach().cpu().numpy(),
+         #target.detach().cpu().numpy(), target_pred.detach().cpu().numpy()) 
         
         
 
@@ -260,7 +268,9 @@ def train(source_loader, target_train_loader, test_flag,  target_test_loader, KM
         #writer.add_scalar('Loss/transfer', train_loss_transfer.avg, e)
 
         #print(mu)
-        
+        torch.cuda.synchronize()
+        tEnd = time.time()
+        print (tEnd - tStart)
         #return np_log
 
 
@@ -310,7 +320,7 @@ if __name__ == '__main__':
     shuffle=True,               # 要不要打乱数据 (打乱比较好)
     num_workers=4,   # 多线程来读数据
     drop_last = True,
-    persistent_workers=True, # 未到batch_size數量之樣本丟棄
+    persistent_workers=True # 未到batch_size數量之樣本丟棄
     )
 
     target_train_loader = Data.DataLoader(
@@ -356,7 +366,7 @@ if __name__ == '__main__':
         os.makedirs(save_log_path)
     
     model = models.Transfer_Net(CFG['n_class'])
-    #model = model.cuda()
+    model = model.to(DEVICE)
 
 
     KMM_weight = KMM_Lin.compute_kmm()
@@ -389,12 +399,12 @@ if __name__ == '__main__':
             
             {'params': model.base_network.parameters(), 'lr' : 100 * opt.lr},
             {'params': model.base_network.avgpool.parameters(), 'lr' : 100 * opt.lr},
-            {'params': model.bottle_layer.parameters(), 'lr' : 10 *  opt.lr},
-            {'params': model.classifier_layer.parameters(), 'lr' :10 *  opt.lr},
+            {'params': model.bottle_layer.parameters(), 'lr' : 20 *  opt.lr},
+            {'params': model.classifier_layer.parameters(), 'lr' :20 *  opt.lr},
         ], lr=opt.lr , betas=CFG['betas'], weight_decay=CFG['l2_decay'])
 
     #scheduler=torch.optim.lr_scheduler.StepLR(optimizer,step_size=20, gamma=0.16)
-    scheduler=torch.optim.lr_scheduler.ExponentialLR(optimizer,gamma=0.85, verbose = False)
+    scheduler=torch.optim.lr_scheduler.ExponentialLR(optimizer,gamma=0.95, verbose = False)
     #for params in model.parameters():
         #print(params.data)
     
@@ -409,12 +419,12 @@ if __name__ == '__main__':
 
     np_log = train(source_loader, target_train_loader, test_flag, 
           target_test_loader,KMM_weight, model, CFG, save_test_path, save_log_path, optimizer)
-    #np.savetxt(opt.save_train_loss_name, np_log, delimiter=',', fmt='%.12f')
+    np.savetxt(opt.save_train_loss_name, np_log, delimiter=',', fmt='%.12f')
 
     # Test
 
-    #np_test = test(model, target_test_loader, test_flag, opt.mu)
-    #np.savetxt(opt.save_test_name, np_log, delimiter=',', fmt='%.6f')
+    np_test = test(model, target_test_loader, test_flag, opt.mu)
+    np.savetxt(opt.save_test_name, np_log, delimiter=',', fmt='%.6f')
  
     save_parameter_add = os.path.join(save_parameter_path + str(opt.save_parameter_path_name))
     torch.save(model.state_dict(), save_parameter_add)
