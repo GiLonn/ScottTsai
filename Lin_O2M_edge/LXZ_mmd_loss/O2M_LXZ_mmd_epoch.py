@@ -58,8 +58,10 @@ def test(model, target_test_loader):
     with torch.no_grad(): # 在做evaluation時，關閉計算導數來增加運行速度
         for data, target in target_test_loader: # data為test資料，target為test label
             data, target = data.to(DEVICE), target.to(DEVICE)
+            torch.cuda.synchronize()
             tStart = time.time()
             s_output = model.predict(data) # 將data放入模型得到預測的輸出
+            torch.cuda.synchronize()
             tEnd = time.time()
             time_cost = time_cost + (tEnd - tStart)
             loss = criterion(s_output, target) #計算loss
