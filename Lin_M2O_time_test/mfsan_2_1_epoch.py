@@ -39,13 +39,13 @@ parser.add_argument("--save_test_name", type=str, default='test_log1.csv', help=
 parser.add_argument("--save_train_loss_name1", type=str, default='train_log1.csv', help='path to save models and log files')
 parser.add_argument("--save_train_loss_name2", type=str, default='train_log2.csv', help='path to save models and log files')
 # parser.add_argument("--use_gpu", type=str2bool, default=True, help='use GPU or not')
-#parser.add_argument("--gpu_id", type=str, default='cuda:0', help='GPU id')
+parser.add_argument("--gpu_id", type=str, default='cuda:0', help='GPU id')
 
 opt = parser.parse_args()
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-#torch.cuda.set_device(opt.gpu_id)
+torch.cuda.set_device(opt.gpu_id)
 logtrain1 = [] #創建一個空的list
 logtrain2 = [] #創建一個空的list
 logtest = [] #創建一個空的list
@@ -57,7 +57,7 @@ logtest = [] #創建一個空的list
 # iteration = 10000
 # lr = 0.01
 # momentum = 0.9
-cuda = False
+cuda = True
 seed = 8
 log_interval = 1
 l2_decay = 1e-4
@@ -114,7 +114,7 @@ def train(model):
         # ], lr=LEARNING_RATE / 10, momentum=momentum, weight_decay=l2_decay)
 
 
-        #torch.cuda.synchronize()
+        torch.cuda.synchronize()
         tStart = time.time() #計時開始
         try:
             source_data, source_label = source1_iter.next()
@@ -149,8 +149,8 @@ def train(model):
                 i, 100. * i / iteration, loss.item(), cls_loss.item(), mmd_loss.item(), l1_loss.item()))
 
         logtrain1.append([loss, cls_loss,KMM_weight_source1*cls_loss,mmd_loss,gamma*mmd_loss])
-        #np_log1 = np.array(logtrain1, dtype=float)
-        #np.savetxt(opt.save_train_loss_name1, np_log1, delimiter=',', fmt='%.12f')
+        np_log1 = np.array(logtrain1, dtype=float)
+        np.savetxt(opt.save_train_loss_name1, np_log1, delimiter=',', fmt='%.12f')
 
         try:
             source_data, source_label = source2_iter.next()
@@ -181,7 +181,7 @@ def train(model):
 
         scheduler.step()
         # print(scheduler.get_lr())
-        #torch.cuda.synchronize()
+        torch.cuda.synchronize()
         tEnd = time.time() #計時結束
         print (tEnd - tStart) #原型長這樣
 
@@ -191,16 +191,16 @@ def train(model):
             # print("gamma: ", gamma)
             print('Train source2 iter: {} [({:.0f}%)]\tLoss: {:.6f}\tcls_Loss: {:.6f}\tmmd_Loss: {:.6f}\tl1_Loss: {:.6f}'.format(
                     i, 100. * i / iteration, loss.item(), cls_loss.item(), mmd_loss.item(), l1_loss.item()))
-        '''
+
         if i % log_interval == 0:
             t_correct = test(model)
             if t_correct > correct:
                 correct = t_correct
             print(source1_name, source2_name, "to", target_test_name, "%s max correct:" % target_test_name, correct.item(), "\n")
-        '''
+
         logtrain2.append([loss, cls_loss,KMM_weight_source2*cls_loss,mmd_loss,gamma*mmd_loss])
-        #np_log2 = np.array(logtrain2, dtype=float)
-        #np.savetxt(opt.save_train_loss_name2, np_log2, delimiter=',', fmt='%.12f')
+        np_log2 = np.array(logtrain2, dtype=float)
+        np.savetxt(opt.save_train_loss_name2, np_log2, delimiter=',', fmt='%.12f')
 
 def test(model):
     model.eval()
