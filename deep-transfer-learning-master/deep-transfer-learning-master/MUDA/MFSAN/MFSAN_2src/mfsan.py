@@ -14,16 +14,16 @@ batch_size = 8
 iteration = 100
 lr = [0.001, 0.01]
 momentum = 0.9
-cuda = False
+cuda = True
 seed = 8
 log_interval = 20
 l2_decay = 5e-4
 #train_root_path = "D:/ScottTsai_M2O/M2O_datasets_Scott/Feature/8/2_to_1/"
-root_path= './instance/2_to_1/'
-source1_name = "_to_apple/1/source1/train/"
-source2_name = '_to_apple/1/source2/train/'
-target_train_name = '_to_apple/1/target/train/'
-target_test_name = "_to_apple/1/target/test/"
+root_path= './instance/2_to_1/_to_apple/1/'
+source1_name = "source1/train/"
+source2_name = 'source2/train/'
+target_train_name = 'target/train/'
+target_test_name = "target/test/"
 
 torch.manual_seed(seed)
 if cuda:
@@ -59,7 +59,7 @@ def train(model):
         optimizer.param_groups[2]['lr'] = lr[1] / math.pow((1 + 10 * (i - 1) / (iteration)), 0.75)
         optimizer.param_groups[3]['lr'] = lr[1] / math.pow((1 + 10 * (i - 1) / (iteration)), 0.75)
         optimizer.param_groups[4]['lr'] = lr[1] / math.pow((1 + 10 * (i - 1) / (iteration)), 0.75)
-        #torch.cuda.synchronize()
+        torch.cuda.synchronize()
         tStart = time.time()
         
         try:
@@ -111,7 +111,7 @@ def train(model):
         loss = cls_loss + gamma * (mmd_loss + l1_loss)
         loss.backward()
         optimizer.step()
-        #torch.cuda.synchronize()
+        torch.cuda.synchronize()
         tEnd = time.time()
         print(tEnd - tStart)
         if i % log_interval == 0:
@@ -161,6 +161,6 @@ def test(model):
 if __name__ == '__main__':
     model = models.MFSAN(num_classes=2)
     print(model)
-    #if cuda:
-        #model.cuda()
+    if cuda:
+        model.cuda()
     train(model)

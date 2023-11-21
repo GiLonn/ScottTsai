@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 from __future__ import print_function
 import torch
 import torch.nn.functional as F
@@ -19,12 +20,12 @@ seed = 8
 log_interval = 20
 l2_decay = 5e-4
 class_num = 65
-root_path = 'D:/ScottTsai_M2O/M2O_datasets_Scott/instance/3_to_1/'
-source1_name = "_to_guava/39/source1/train/"
-source2_name = '_to_guava/39/source2/train/'
-source3_name = '_to_guava/39/source3/train/'
-target_train_name = '_to_guava/39/target/train/'
-target_name = "_to_guava/39/target/test/"
+root_path = './3_to_1_data/'
+source1_name = "/39/source1/train/"
+source2_name = '/39/source2/train/'
+source3_name = '/39/source3/train/'
+target_train_name = '/39/target/train/'
+target_name = "/39/target/test/"
 
 torch.manual_seed(seed)
 if cuda:
