@@ -1,0 +1,5 @@
+activate e2eServer
+
+cd E:\AmigoChou\Q2\Training\O2M_terminal\LXZ_mmd_loss
+
+E:
