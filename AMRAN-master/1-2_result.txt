@@ -1,0 +1,18 @@
+test1:
+ga to ga 52.33%
+ga to ca 51.00%
+avg:51.66%
+
+test2:
+ga to ga 54.67%
+ga to ca 65.00%
+avg:59.84%
+
+
+test3:
+ga to ga 50.00%
+ga to ca 50.5%
+avg:50.25%
+
+total avg:53.92%
+mu 0.5

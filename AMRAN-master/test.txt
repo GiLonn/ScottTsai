@@ -1,0 +1,6 @@
+python AMRAN.py --batch-size 8 --epochs 150 --lr 0.0002 --momentum 0.9  --seed 3 --log-interval 5 --l2_decay 5e-4 --mu 0.5 --root_path "D:/ScottTsai/O2M_datasets_backup/" --source_dir "guava_to_/to_guava/sn_200_sp_200/source/train/" --target_train_dir "guava_to_/to_guava/sn_200_sp_200/target/train/" --test_dir "guava_to_/to_guava/sn_200_sp_200/target/test/" --source "guava" --target "guava" --gpu_id cuda:0
+
+python AMRAN.py --batch-size 8 --epochs 150 --lr 0.0002 --momentum 0.9  --seed 3 --log-interval 5 --l2_decay 5e-4 --mu 0.5 --root_path "D:/ScottTsai/O2M_datasets_backup/" --source_dir "guava_to_/to_carambola/sn_200_sp_200/source/train/" --target_train_dir "guava_to_/to_carambola/sn_200_sp_200/target/train/" --test_dir "guava_to_/to_carambola/sn_200_sp_200/target/test/" --source "guava" --target "carambola" --gpu_id cuda:0
+
+******test_time*******
+python AMRAN.py --batch-size 8 --epochs 150 --lr 0.0002 --momentum 0.9  --seed 3 --log-interval 5 --l2_decay 5e-4 --mu 0.5 --root_path "./O2M_datasets_backup/" --source_dir "muskmelon_to_/to_pear/sn_200_sp_200/source/train/" --target_train_dir "muskmelon_to_/to_pear/sn_200_sp_200/target/train/" --test_dir "muskmelon_to_/to_pear/sn_200_sp_200/target/test/" --source "muskmelon" --target "pear" --gpu_id cuda:0

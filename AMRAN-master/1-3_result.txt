@@ -1,0 +1,31 @@
+test1:
+ap to ap 67.83%
+ap to ph 69.00%
+ap to to 51.33%
+avg 62.72%
+
+test2:
+ap to ap 74.50%
+ap to ph 67.67%
+ap to to 50.00%
+avg 64.05%
+
+test3:
+ap to ap 69.83%
+ap to ph 70.17%
+ap to to 50.00%
+avg 63.33%
+
+total avg 63.37%
+
+
+ap to ga 57.67%
+ap to ga 55.33%
+ap to ga 58.67%
+avg1:61.46%
+avg2:61.88%
+avg3:62.16%
+total avg: 61.83%
+
+mu = 0.5 
+約5.x~6.x ms
