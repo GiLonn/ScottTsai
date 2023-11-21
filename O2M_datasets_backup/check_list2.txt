@@ -1,0 +1,1 @@
+python check_list2.py --check_fruit1 "apple" --check_fruit2 "banana" --check_fruit3 "carambola" --check_fruit4 "guava" --check_fruit5 "muskmelon" --check_fruit6 "peach" --check_fruit7 "pear" --check_fruit8 "tomato"
