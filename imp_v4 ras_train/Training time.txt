@@ -1,0 +1,69 @@
+batchSize 8, num_workers 2, persistent workers = False, with estimate_mu
+epoch1:308.422s
+epoch2:311.542s
+epoch3:320.894s
+epoch4:308.543s
+epoch5:314.662s
+
+batchsize 8, num_workers 2, persistant_workers = False, mu = 0.5 (no estimate_mu)
+epoch1:296.889s
+epoch2:305.496s
+epoch3:309.200s
+epoch4:308.591s
+epoch5:311.489s
+
+batchsize 8, num_workers 4, persistant_workers = False, with estimate_mu
+epoch1:284.271s
+epoch2:283.833s
+epoch3:298.367s
+epoch4:294.983s
+epoch5:294.381s
+
+batchsize 8, num_workers 4, persistant_workers = False, mu = 0.5
+epoch1:281.395s
+epoch2:291.441s
+epoch3:293.536s
+epoch4:297.364s
+epoch5:299.044s
+
+batchsize 32, num_workers 2, persistant_workers = False, with estimate_mu
+epoch1:208.173s
+epoch2:221.286s
+epoch3:219.747s
+epoch4:235.752s
+epochs:216.214s
+
+batchsize 32, num_workers 2, persistant_workers = False, mu = 0.5
+epoch1:202.506s
+epoch2:212.692s
+epoch3:214.991s
+epoch4:213.747s
+epoch5:213.000s
+
+batchsize 32, num_workers 4, persistant_workers = False, with estimate_mu
+epoch1:198.011s
+epoch2:216.624s
+epoch3:217.500s
+epoch4:237.266s
+epoch5:218.198s
+
+batchsize 32, num_workers 4, persistant_workers = False, mu = 0.5
+epoch1:194.816s
+epoch2:212.153s
+epoch3:213.617s
+epoch4:210.992s
+epoch5:211.015s
+
+batchsize 48, num_workers 2, persistant_workers = False, with esitmate_mu
+epoch1:200.467s
+epoch2:233.157s
+epoch3:237.647s
+epoch4:273.163s
+epoch5:266.230s
+
+batchsize 48, num_workers 2, persistant_workers = False, mu = 0.5
+epoch1:200.866s
+epoch2:226.872s
+epoch3:227.460s
+epoch4:227.804s
+epoch5:224.699s
