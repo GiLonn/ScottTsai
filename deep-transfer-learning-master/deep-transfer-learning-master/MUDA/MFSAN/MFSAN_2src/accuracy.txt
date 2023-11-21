@@ -1,0 +1,11 @@
+ap ba to ap
+test1: 77.50%
+test2: 79.50%
+test3: 76.83%
+avg:77.94%
+
+ap ca to ca
+test1: 63.50%
+test2: 66.33%
+test3: 66.00%
+avg:65.28%
