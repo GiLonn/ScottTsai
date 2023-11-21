@@ -481,7 +481,7 @@ class MFSAN(nn.Module):
                 data_tgt_label1 = Variable(data_tgt_cls1.data.max(1)[1])
 
                 cmmd_loss = Variable(torch.tensor([0]))
-                #cmmd_loss = cmmd_loss.cuda()
+                cmmd_loss = cmmd_loss.cuda()
                 cmmd_loss = mmd.cmmd(data_src, data_tgt_son1,label_src, data_tgt_label1)
                 transfer_loss = (1- mu1) * cmmd_loss + mu1 * mmd_loss
 
@@ -530,7 +530,7 @@ class MFSAN(nn.Module):
                 data_tgt_label2 = Variable(data_tgt_cls2.data.max(1)[1])
 
                 cmmd_loss = Variable(torch.tensor([0]))
-                #cmmd_loss = cmmd_loss.cuda()
+                cmmd_loss = cmmd_loss.cuda()
                 cmmd_loss = mmd.cmmd(data_src, data_tgt_son2,label_src, data_tgt_label2)
                 transfer_loss = (1- mu2) * cmmd_loss + mu2 * mmd_loss
 

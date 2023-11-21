@@ -17,7 +17,7 @@ import estimate_mu as es
 from sklearn.metrics import confusion_matrix
 
 import argparse
-torch.backends.cudnn.benchmark = False
+torch.backends.cudnn.benchmark = True
 def str2bool(v):
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
         return True
@@ -77,7 +77,7 @@ opt = parser.parse_args()
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-#torch.cuda.set_device(opt.gpu_id)
+torch.cuda.set_device(opt.gpu_id)
 #print(str(opt.com))
 logtrain1 = [] #創建一個空的list
 logtrain2 = [] #創建一個空的list
@@ -90,7 +90,7 @@ logtest = [] #創建一個空的list
 # iteration = 10000
 # lr = 0.01
 # momentum = 0.9
-cuda = False
+cuda = True
 seed = 3407
 log_interval = 1
 l2_decay = 5e-5
@@ -158,7 +158,7 @@ def train(model, test_flag):
         # ], lr=LEARNING_RATE / 10, momentum=momentum, weight_decay=l2_decay)
 
 
-        #torch.cuda.synchronize()
+        torch.cuda.synchronize()
         tStart = time.time() #計時開始
         try:
             source_data, source_label = source1_iter.next()
@@ -201,9 +201,9 @@ def train(model, test_flag):
                 i, 100. * i / iteration, loss.item(), cls_loss.item(), transfer_loss.item(), l1_loss.item()))
 
         logtrain1.append([loss, cls_loss,KMM_weight_source1_cls*cls_loss,transfer_loss,gamma*transfer_loss])
-        #np_log1 = np.array(logtrain1, dtype=float)
-        #save_log_train1_add = os.path.join(save_log_train_1_path, str(opt.save_train_loss_name1))
-        #np.savetxt(save_log_train1_add, np_log1, delimiter=',', fmt='%.12f')
+        np_log1 = np.array(logtrain1, dtype=float)
+        save_log_train1_add = os.path.join(save_log_train_1_path, str(opt.save_train_loss_name1))
+        np.savetxt(save_log_train1_add, np_log1, delimiter=',', fmt='%.12f')
         
         try:
             source_data, source_label = source2_iter.next()
@@ -244,7 +244,7 @@ def train(model, test_flag):
         print("mu2 :", mu2)
 
         # print(scheduler.get_lr())
-        #torch.cuda.synchronize()
+        torch.cuda.synchronize()
         tEnd = time.time() #計時結束
         print (tEnd - tStart) #原型長這樣
 
@@ -262,9 +262,9 @@ def train(model, test_flag):
             print(opt.source1_class, opt.source2_class, "to", opt.test_class, "%s max correct:" % target_test_name, correct.item(), "\n")
         '''
         logtrain2.append([loss, cls_loss,KMM_weight_source2_cls*cls_loss,transfer_loss,gamma*transfer_loss])
-        #np_log2 = np.array(logtrain2, dtype=float)
-        #save_log_train2_add = os.path.join(save_log_train_2_path, str(opt.save_train_loss_name2))
-        #np.savetxt(opt.save_train_loss_name2, np_log2, delimiter=',', fmt='%.12f')
+        np_log2 = np.array(logtrain2, dtype=float)
+        save_log_train2_add = os.path.join(save_log_train_2_path, str(opt.save_train_loss_name2))
+        np.savetxt(opt.save_train_loss_name2, np_log2, delimiter=',', fmt='%.12f')
 
 def test(model, test_flag):
     model.eval()
@@ -397,7 +397,7 @@ if __name__ == '__main__':
     dataset=source_1_dataset,      # torch TensorDataset format
     batch_size=opt.batch_size,      # mini batch size
     shuffle=True,               # 要不要打乱数据 (打乱比较好)
-    num_workers=4,   # 多线程来读数据
+    num_workers=0,   # 多线程来读数据
     drop_last = True, # 未到batch_size數量之樣本丟棄
     )
 
@@ -405,7 +405,7 @@ if __name__ == '__main__':
     dataset=source_2_dataset,      # torch TensorDataset format
     batch_size=opt.batch_size,      # mini batch size
     shuffle=True,               # 要不要打乱数据 (打乱比较好)
-    num_workers=4,   # 多线程来读数据
+    num_workers=0,   # 多线程来读数据
     drop_last = True, # 未到batch_size數量之樣本丟棄
     )
 
@@ -413,7 +413,7 @@ if __name__ == '__main__':
     dataset=target_dataset,      # torch TensorDataset format
     batch_size=opt.batch_size,      # mini batch size
     shuffle=True,               # 要不要打乱数据 (打乱比较好)
-    num_workers=4,   # 多线程来读数据
+    num_workers=0,   # 多线程来读数据
     drop_last = True, # 未到batch_size數量之樣本丟棄
     )
 
