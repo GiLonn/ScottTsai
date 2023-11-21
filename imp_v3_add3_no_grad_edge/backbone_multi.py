@@ -5,7 +5,7 @@ import torchvision
 from torchvision import models
 from torch.autograd import Variable
 import math
-from torchinfo import summary
+#from torchinfo import summary
 import torch.nn.functional as F
 import ECANet as att
 #import GCN

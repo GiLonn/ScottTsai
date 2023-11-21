@@ -18,7 +18,7 @@ import LabelSmoothing as LS
 
 import argparse
 import time
-#torch.backends.cudnn.benchmark = True
+torch.backends.cudnn.benchmark = True
 
 def str2bool(v):
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
@@ -67,14 +67,14 @@ DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-#torch.cuda.set_device(opt.gpu_id)
+torch.cuda.set_device(opt.gpu_id)
 logtrain = [] #創建一個空的list
 logtest = [] #創建一個空的list
 #writer = SummaryWriter()
 
 def test(model, target_test_loader, test_flag, mu):
-    time_cost = 0
     model.eval() # 讓模型變成測試模式，主要針對Dropout與Batch Normalization在train與eval的不同設置模式
+    time_cost = 0
     test_loss = utils.AverageMeter() # Computes and stores the average and current value
     correct_total = 0.
     count_stack = 0
@@ -85,13 +85,16 @@ def test(model, target_test_loader, test_flag, mu):
     len_target_dataset = len(target_test_loader.dataset) #所有test資料集的總數
     with torch.no_grad(): # 在做evaluation時，關閉計算導數來增加運行速度
         for data, target in target_test_loader: # data為test資料，target為test label
-            #data, target = data.to(DEVICE), target.to(DEVICE)
+            data, target = data.to(DEVICE), target.to(DEVICE)
             #import pdb; pdb.set_trace()
             #_, _, s_output, t_output, test_mmd_loss = model(data, data, target, mu) # 將data放入模型得到預測的輸出
+            torch.cuda.synchronize()
             tStart = time.time()
             test_output = model.predict(data, test_flag)
+            torch.cuda.synchronize()
             tEnd = time.time()
             time_cost = time_cost + (tEnd - tStart)
+            #print(tEnd - tStart)
             loss = criterion(test_output, target) #計算loss
             test_loss.update(loss.item()) # 更新值到紀錄中
 
@@ -198,11 +201,8 @@ def train(source_loader, target_train_loader, test_flag,  target_test_loader, KM
             #loss = clf_loss + gamma * transfer_loss 
 
             # classification loss + lambda * transfer loss
-            
             loss.backward()
-            
              # computes dloss/dx for every parameter x which has requires_grad=True
-             
             optimizer.step() #updates the value of x using the gradient x.grad
              
             train_loss_clf.update(clf_loss.item()) # 更新值到紀錄中
@@ -233,26 +233,24 @@ def train(source_loader, target_train_loader, test_flag,  target_test_loader, KM
         mu_last = mu
         
         mu = es.estimate_mu(source.detach().cpu().numpy(), label_source.detach().cpu().numpy(),
-         target.detach().cpu().numpy(), target_pred.detach().cpu().numpy())
-        
+         target.detach().cpu().numpy(), target_pred.detach().cpu().numpy()) 
+        #torch.cuda.synchronize()
         #tEnd = time.time()
         #print (tEnd - tStart)
-        #torch.cuda.synchronize()
-        
 
         #writer.add_scalar('Loss/cls', train_loss_clf.avg, e)
         #writer.add_scalar('Loss/transfer', train_loss_transfer.avg, e)
         #print(mu)
         #return np_log
 
-
+        
         #Test
-        np_test = test(model, target_test_loader, test_flag, mu_last)
+        #np_test = test(model, target_test_loader, test_flag, mu_last)
         #print(data_source.shape)
 
         #save_test_add = os.path.join(save_test_path, str (opt.save_test_name))
         #np.savetxt(save_test_add, np_test, delimiter=',', fmt='%.6f')
-    
+            
 
 
 
@@ -338,12 +336,11 @@ if __name__ == '__main__':
         os.makedirs(save_log_path)
     
     model = models.Transfer_Net(CFG['n_class'])
-    #model = model.cuda()
+    model = model.cuda()
 
 
     KMM_weight = KMM_Lin.compute_kmm()
-    #KMM_weight = torch.from_numpy(KMM_weight).float().to(DEVICE)
-    KMM_weight = torch.from_numpy(KMM_weight).float()
+    KMM_weight = torch.from_numpy(KMM_weight).float().to(DEVICE)
     print(KMM_weight)
 
 

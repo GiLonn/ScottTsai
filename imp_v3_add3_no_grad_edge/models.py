@@ -87,22 +87,16 @@ class Transfer_Net(nn.Module):
         ##source = source.view(source.size(0), -1)
         ##target = target.view(target.size(0), -1)
         source = self.base_network(source, test_flag)
-        
-        source = self.bottle_layer(source)
-        #with torch.no_grad():
-        source_bottle = source
-            #print(source_bottle.requires_grad)
-        source_clf = self.classifier_layer(source)
         target = self.base_network(target, test_flag)
+        source = self.bottle_layer(source)
         target = self.bottle_layer(target)
-        #with torch.no_grad():
-        target_bottle = target
-        
+        with torch.no_grad():
+            source_bottle = source
+            target_bottle = target
+        source_clf = self.classifier_layer(source)
         t_label = self.classifier_layer(target)
         t_label = Variable(t_label.data.max(1)[1])
         transfer_loss = self.adapt_loss(source_bottle, target_bottle, self.transfer_loss, s_label, t_label, mu)
-        del source_bottle
-        del target_bottle
 
          #predict target label using iteration for cmmd
 
@@ -136,7 +130,7 @@ class Transfer_Net(nn.Module):
             mmd_loss = mmd.mmd_rbf_noaccelerate(X, Y)
             if self.training:
                 cmmd_loss = Variable(torch.Tensor([0]))
-                #cmmd_loss = cmmd_loss.cuda()
+                cmmd_loss = cmmd_loss.cuda()
                 cmmd_loss = mmd.cmmd(X, Y, s_label, t_label)
             transfer_loss = (1- mu) * cmmd_loss + mu * mmd_loss
         else:

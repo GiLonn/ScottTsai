@@ -22,17 +22,9 @@ def guassian_kernel(source, target, kernel_mul=2.0, kernel_num=5, fix_sigma=None
     kernel_val = [torch.exp(-L2_distance / bandwidth_temp) for bandwidth_temp in bandwidth_list]
     return sum(kernel_val)#/len(kernel_val)
 
-def linear_mmd2(f_of_X, f_of_Y):
-    loss = 0.0
-    delta = f_of_X.float().mean(0) - f_of_Y.float().mean(0)
-    loss = delta.dot(delta.T)
-    return loss
-
-
 def cmmd(source, target, s_label, t_label, kernel_mul=2.0, kernel_num=5, fix_sigma=None):
     s_label = s_label.cpu()
     batch_size = int(source.size()[0])
-    #print(batch_size)
     s_label = s_label.view(batch_size,1)
     s_label = torch.zeros(batch_size, 31).scatter_(1, s_label.data, 1)
     s_label = Variable(s_label).cuda()
