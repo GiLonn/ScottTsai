@@ -61,12 +61,15 @@ def test(model, target_test_loader):
     count_stack = 0
     criterion = torch.nn.CrossEntropyLoss() # 定義一個標準準則，用來計算loss (讓輸出經過softmax，再進入Cross Entropy)
     len_target_dataset = len(target_test_loader.dataset) #所有test資料集的總數
+    torch.cuda.synchronize()
     time_cost = 0
     with torch.no_grad(): # 在做evaluation時，關閉計算導數來增加運行速度
         for data, target in target_test_loader: # data為test資料，target為test label
-            #data, target = data.to(DEVICE), target.to(DEVICE)
+            data, target = data.to(DEVICE), target.to(DEVICE)
+            torch.cuda.synchronize()
             tStart = time.time()
             s_output = model.predict(data) # 將data放入模型得到預測的輸出
+            torch.cuda.synchronize()
             tEnd = time.time()
             #print(tEnd - tStart)
             time_cost = time_cost + (tEnd - tStart)
@@ -95,8 +98,10 @@ def test(model, target_test_loader):
         target_matrix_total = target_matrix_total.cpu().numpy()
         pred_matrix_total = pred_matrix_total.cpu().numpy()
         tn, fp, fn, tp = confusion_matrix(target_matrix_total, pred_matrix_total,labels=[0,1]).ravel()
+        #torch.cuda.synchronize()
         #tEnd = time.time()
         #print(tEnd - tStart)
+    
         # print(tn, fp, fn, tp)
     # correct = correct.cpu().numpy()
     # {:.2f}保留小數點後兩位
@@ -108,10 +113,10 @@ def test(model, target_test_loader):
 
     logtest.append([test_total,tn, fp, fn, tp])
     np_log = np.array(logtest, dtype=float)
-    #print(time_cost)
-    # delimiter : 分隔浮號 ； %.6f 浮點型保留六位小數
     print(time_cost)
-    np.savetxt(opt.save_test_name, np_log, delimiter=',', fmt='%.6f')
+
+    # delimiter : 分隔浮號 ； %.6f 浮點型保留六位小數
+    #np.savetxt(opt.save_test_name, np_log, delimiter=',', fmt='%.6f')
 
 
 def train(source_loader, target_train_loader, target_test_loader, model, optimizer, CFG):
@@ -139,12 +144,13 @@ def train(source_loader, target_train_loader, target_test_loader, model, optimiz
         criterion = torch.nn.CrossEntropyLoss() # 使用Loss為CrossEntropy (pytorch crossentropy會自動先經過softmax function)
         scheduler.step()
         print(scheduler.get_lr())
+        #torch.cuda.synchronize()
         #tStart = time.time()
         for i in range(n_batch):
             data_source, label_source = iter_source.next()
             data_target, _ = iter_target.next()
-            #data_source, label_source = data_source.to(DEVICE), label_source.to(DEVICE)
-            #data_target = data_target.to(DEVICE)
+            data_source, label_source = data_source.to(DEVICE), label_source.to(DEVICE)
+            data_target = data_target.to(DEVICE)
             
 
             label_source = torch.squeeze(label_source)
@@ -172,7 +178,7 @@ def train(source_loader, target_train_loader, target_test_loader, model, optimiz
                     int(100. * i / n_batch), train_loss_clf.avg, train_loss_transfer.avg*opt.lambda_, train_loss_total.avg))
         logtrain.append([train_loss_clf.avg, train_loss_transfer.avg*opt.lambda_,])
         np_log = np.array(logtrain, dtype=float)
-        
+        #torch.cuda.synchronize()
         #tEnd = time.time() #計時結束
         #print (tEnd - tStart) #原型長這樣
         
@@ -182,9 +188,7 @@ def train(source_loader, target_train_loader, target_test_loader, model, optimiz
         
 
         # Test
-        
-        #print("test")
-        test(model, target_test_loader)
+        #test(model, target_test_loader)
     
 
 def load_data(root_dir):
@@ -243,33 +247,33 @@ if __name__ == '__main__':
 
     # model = models.Transfer_Net(
     #     CFG['n_class'], transfer_loss='mmd', base_net='resnet50').to(DEVICE)
-    model = models.Transfer_Net(CFG['n_class'], transfer_loss='coral', base_net='resnet18')
+    model = models.Transfer_Net(CFG['n_class'], transfer_loss='coral', base_net='resnet18').to(DEVICE)
 
 
     # 如要關閉網路參數更新，將param.requires_grad = False 即可
-    for param in model.base_network.conv1.parameters():
-        param.requires_grad = False
+    #for param in model.base_network.conv1.parameters():
+        #param.requires_grad = False
     
-    for param in model.base_network.bn1.parameters():
-        param.requires_grad = False
+    #for param in model.base_network.bn1.parameters():
+        #param.requires_grad = False
     
-    for param in model.base_network.relu.parameters():
-        param.requires_grad = False
+    #for param in model.base_network.relu.parameters():
+        #param.requires_grad = False
     
-    for param in model.base_network.maxpool.parameters():
-        param.requires_grad = False
+    #for param in model.base_network.maxpool.parameters():
+        #param.requires_grad = False
     
-    for param in model.base_network.layer1[0].parameters():
-        param.requires_grad = False
+    #for param in model.base_network.layer1[0].parameters():
+        #param.requires_grad = False
 
-    for param in model.base_network.layer1[1].parameters():
-        param.requires_grad = False
+    #for param in model.base_network.layer1[1].parameters():
+        #param.requires_grad = False
 
-    for param in model.base_network.layer2[0].parameters():
-        param.requires_grad = False
+    #for param in model.base_network.layer2[0].parameters():
+        #param.requires_grad = False
 
-    for param in model.base_network.layer2[1].parameters():
-        param.requires_grad = False
+    #for param in model.base_network.layer2[1].parameters():
+        #param.requires_grad = False
 
     # for param in model.base_network.layer3[0].parameters():
     #     param.requires_grad = False
@@ -294,7 +298,7 @@ if __name__ == '__main__':
     #                                  ,'E:\\AmigoChou\\Q2\\Training\\O2M_LXZ vs ZYM\\datasets_ZYM\\4\\apple_to_\\to_pear\\target\\train\\target_train_feature.npy'
     #                                  ,'E:\\AmigoChou\\Q2\\Training\\O2M_LXZ vs ZYM\\datasets_ZYM\\4\\apple_to_\\to_pear\\source\\train\\source_train_feature_label.npy')
     KMM_weight = KMM_Lin.compute_kmm()
-    KMM_weight = torch.from_numpy(KMM_weight).float()
+    KMM_weight = torch.from_numpy(KMM_weight).float().to(DEVICE)
     print(KMM_weight)
 
     # optimizer = torch.optim.SGD([

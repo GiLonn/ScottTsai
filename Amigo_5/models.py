@@ -3,8 +3,6 @@ import torchvision
 from coral_pytorch import CORAL
 import mmd
 import backbone
-import time
-
 
 
 # ResNet-18在最初時沒有使用bottleneck
@@ -104,10 +102,8 @@ class Transfer_Net(nn.Module):
         return source_clf, transfer_loss
 
     def predict(self, x):
-        #tStart = time.time()
+
         features = self.base_network(x)
-        #tEnd = time.time()
-        #print(tEnd -tStart)
         clf = self.classifier_layer(features)
         return clf
 

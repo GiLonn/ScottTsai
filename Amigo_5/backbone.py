@@ -4,7 +4,6 @@ import torch.nn as nn
 import torchvision
 from torchvision import models
 from torch.autograd import Variable
-import time
 
 
 # convnet without the last layer
@@ -73,34 +72,27 @@ class ResNet18Fc(nn.Module):
         self.layer1 = model_resnet18.layer1
 
         self.layer2 = model_resnet18.layer2
-        
 
         self.layer3 = model_resnet18.layer3
 
         self.layer4 = model_resnet18.layer4
-        
 
         self.avgpool = model_resnet18.avgpool
         self.__in_features = model_resnet18.fc.in_features # 最後一層fully connected 的 input_features
 
     def forward(self, x):
-        tStart = time.time()
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
         x = self.maxpool(x)
-        
+
         x = self.layer1(x)
 
         x = self.layer2(x)
-        tEnd = time.time()
-        print(tEnd - tStart)
-        
 
         x = self.layer3(x)
 
         x = self.layer4(x)
-       
 
         x = self.avgpool(x)
 
