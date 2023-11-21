@@ -1,0 +1,9 @@
+ap ba ca pr to ca 54.83%
+ap ba ca pr to ca 50.00%
+ap ba ca pr to ca 50.00%
+avg: 51.61%
+
+ap ga ph pr to pr 50.00%
+ap ga ph pr to pr 50.17%
+ap ga ph pr to pr 50.33%
+avg: 50.17%

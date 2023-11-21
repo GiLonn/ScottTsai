@@ -1,0 +1,5 @@
+activate e2eServer
+
+E:
+
+cd E:\AmigoChou\Q2\Training\M2O_LXZ_editbyAmigo\4_to_1
